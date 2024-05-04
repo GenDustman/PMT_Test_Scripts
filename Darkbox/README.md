@@ -2,6 +2,8 @@
 ## Analysis_PMT_darkbox.ipynb
 ``Analysis_PMT_darkbox.ipynb`` is the script to directly analyze the data named with ``PMT%d_lighton_%d.dat`` or ``PMT%d_dark_%d.dat``, which means the ``PMT%d`` in ``lighton`` or ``dark`` at ``%d`` Volts. The script generates histograms for the pulse areas in both light-on and dark conditions. It also provides information on the gain vs voltage, as well as the photon count for each voltage.
 
+Here are the comments for the codes
+
 ```
 light_on = 0
 PMT_num = 1107
