@@ -95,6 +95,52 @@ def find_peaks_lighton(data):
         area[i] = np.sum(data[start[i]:end[i]])
     return peaks, start, end, height, width, area
 
+def find_peaks_dark(data):
+    # the threshold is related to the median of top 0.0007% of the data
+    threshold = np.median(np.sort(data[0:int(len(data)*0.2)])[-int(len(data)*0.000007):])
+    print(len(data)*0.000005)
+    length = len(data)
+    print('Threshold = ', threshold)
+    # find peaks above threshold and higher than the previous and next data points
+    peaks = np.where((data > threshold) & (data >= np.roll(data, 1)) & (data >= np.roll(data, -1)) & (data >= np.roll(data, 2)) & (data >= np.roll(data, -2)) & (data >= np.roll(data, 3)) & (data >= np.roll(data, -3)))[0]
+    #distance between peaks should be larger than 100
+    peaks = peaks[np.where(np.diff(peaks) > 100)[0]]
+    # find the start and the end of the peaks
+    threshold_width = 0.20*data[peaks]
+    start = np.zeros(len(peaks), dtype=int)
+    end = np.zeros(len(peaks), dtype=int)
+   
+    #calculate the area of the peaks
+    for i in range(len(peaks)):
+        start_t = peaks[i]
+        end_t = peaks[i]
+        while data[start_t] > threshold_width[i]:
+            if (start_t == 0):
+                break
+            else:
+                start_t -= 1
+        start[i] = start_t
+        while data[end_t] > threshold_width[i]:
+            if (end_t == length-1):
+                break
+            else:
+                end_t += 1
+        end[i] = end_t 
+    #only use peaks with width larger than 0 and smaller than 1000
+    shortest = 0
+    longest = 1000
+    peaks_new = peaks[np.where((end - start > shortest) & (end - start < longest))]
+    start_new = start[np.where((end - start > shortest) & (end - start < longest))]
+    end_new = end[np.where((end - start > shortest) & (end - start < longest))]
+    # find the peak height
+    height = data[peaks_new]
+    # find the peak width
+    width = end_new - start_new
+    # find the peak area
+    area = np.zeros(len(start_new))
+    for i in range(len(start_new)):
+        area[i] = np.sum(data[start_new[i]:end_new[i]])
+    return peaks_new, start_new, end_new, height, width, area
 ```
 
 1. It first calculates a threshold value, which is the median of the top 0.02% values in the first 20% of the sorted data.
