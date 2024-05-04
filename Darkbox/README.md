@@ -25,3 +25,24 @@ range_dark = 600
 ``bins_lighton = 100`` and ``bins_dark = 50``: Set the bins for histograms, for the histogram of light-on or dark respectively.
 
 ``range_lighton = 12000`` and ``range_dark = 600``: Set the maximum range for histograms (0~range_*), for the histogram of light-on or dark respectively.
+
+```
+data = []
+if light_on:
+    for i in voltage_use:
+        file_path = '/raid13/genli/Coherent/PMT_Testing/Testing_%d/PMT%d_lighton_%d.dat' % (PMT_num, PMT_num, i)
+        print(file_path)
+        data.append(np.fromfile(file_path, dtype=np.int16))
+else:
+    for i in voltage_use:
+        file_path = '/raid13/genli/Coherent/PMT_Testing/Testing_%d/PMT%d_dark_%d.dat' % (PMT_num, PMT_num, i)
+        print(file_path)
+        data.append(np.fromfile(file_path, dtype=np.int16))
+```
+Choose the correct ``file_path`` for data. The data read from the files is then appended to the ``data`` list.
+
+
+
+
+
+
