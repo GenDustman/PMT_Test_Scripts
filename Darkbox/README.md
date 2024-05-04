@@ -41,6 +41,25 @@ else:
 ```
 Choose the correct ``file_path`` for data. The data read from the files is then appended to the ``data`` list.
 
+```
+def get_baseline(data):
+    #get median of first 10000 samples
+    baseline = np.median(data[0:10000])
+    return baseline
+
+def flip_data(data):
+    # flip data
+    baseline = get_baseline(data)
+    data = baseline - data
+    return data
+```
+``flip_data`` code is used to flip a signal around a baseline value.
+
+```
+for i in range(len(data)):
+    data[i] = flip_data(data[i])
+```
+All data are flipped and centered at ``baseline = 0``.
 
 
 
