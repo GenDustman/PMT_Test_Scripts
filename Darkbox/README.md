@@ -61,6 +61,58 @@ for i in range(len(data)):
 ```
 All data are flipped and centered at ``baseline = 0``.
 
+For ``find_peaks_lighton`` and ``find_peaks_dark``, they work very similarly in identifying peaks and calculating their areas, but with some small distinctions referring to the parameters used. So here we will only explain one of them:
+
+```
+def find_peaks_lighton(data):
+    # find the threshold
+    threshold = np.median(np.sort(data[0:int(len(data)*0.2)])[-int(len(data)*0.0002):])
+    print('Threshold = ', threshold)
+    # find peaks above threshold and higher than the previous and next data points
+    peaks = np.where((data > threshold) & (data >= np.roll(data, 1)) & (data >= np.roll(data, -1)) & (data >= np.roll(data, 2)) & (data >= np.roll(data, -2)) & (data >= np.roll(data, 3)) & (data >= np.roll(data, -3)) & (data >= np.roll(data, 4)) & (data >= np.roll(data, -4))& (data >= np.roll(data, 5)) & (data >= np.roll(data, -5)))[0]
+    #distance between peaks should be larger than 100
+    peaks = peaks[np.where(np.diff(peaks) > 100)[0]]
+    # find the start and the end of the peaks
+    threshold_width = 0.10*data[peaks]
+    start = np.zeros(len(peaks), dtype=int)
+    end = np.zeros(len(peaks), dtype=int)
+    for i in range(len(peaks)):
+        start_t = peaks[i]
+        end_t = peaks[i]
+        while data[start_t] > threshold_width[i]:
+            start_t -= 1
+        start[i] = start_t
+        while data[end_t] > threshold_width[i]:
+            end_t += 1
+        end[i] = end_t
+    # find the peak height
+    height = data[peaks]
+    # find the peak width
+    width = end - start
+    # find the peak area
+    area = np.zeros(len(start))
+    for i in range(len(start)):
+        area[i] = np.sum(data[start[i]:end[i]])
+    return peaks, start, end, height, width, area
+
+```
+
+1. It first calculates a threshold value, which is the median of the top 0.02% values in the first 20% of the sorted data.
+
+2. It then identifies peaks in the data. A peak is defined as a data point that is greater than the threshold and also greater than or equal to its immediate five neighbors on either side.
+
+3. It further refines the peaks by ensuring that the distance between consecutive peaks is more than 100.
+
+4. It then identifies the start and end of each peak. The start and end of a peak are defined as the points where the data value drops below 10% of the peak value.
+
+5. It calculates the height of each peak, which is simply the data value at the peak.
+
+6. It calculates the width of each peak, which is the difference between the end and start of the peak.
+
+7. It calculates the area under each peak, which is the sum of the data values between the start and end of the peak.
+
+8. Finally, it returns the peaks, start, end, height, width, and area of each peak.
+
 
 
 
