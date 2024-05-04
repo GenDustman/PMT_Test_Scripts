@@ -61,7 +61,7 @@ for i in range(len(data)):
 ```
 All data are flipped and centered at ``baseline = 0``.
 
-For ``find_peaks_lighton`` and ``find_peaks_dark``, they work very similarly in identifying peaks and calculating their areas, but with some small distinctions referring to the parameters used. So here we will only explain one of them:
+For functions ``def find_peaks_lighton(data)`` and ``def find_peaks_dark(data)``, they work very similarly in identifying peaks and calculating their areas, but with some small distinctions referring to the parameters used. So here we will only explain one of them:
 
 ```
 def find_peaks_lighton(data):
@@ -112,6 +112,8 @@ def find_peaks_lighton(data):
 7. It calculates the area under each peak, which is the sum of the data values between the start and end of the peak.
 
 8. Finally, it returns the peaks, start, end, height, width, and area of each peak.
+
+``threshold`` in ``def find_peaks_lighton(data)`` can be chosen easily since the peaks (signal for multi-photoelectron in light-on test) are significant, however in the case of ``def find_peaks_dark(data)``, peaks for single-photoelectron are subtle and can vary a lot between different PMTs. This is why we designed the function to be "self-adaptive". Instead of using a fixed value, we use the median of a certain percentage of data. ``0.000007`` in ``def find_peaks_dark(data)`` is a crucial parameter and it is chosen based on both reasonable estimation and also experience. The dark rate is $~1000Hz$, and the width of peaks is around $~5 ADC = 4\times 5 ns = 20 ns$, so the total time length of peaks is $2\times10^-5 s$
 
 
 
