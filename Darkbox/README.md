@@ -297,6 +297,62 @@ The main goal here is to calculate gain and fit gain vs voltage with the exponen
 
 To connect the mean area of single-photoelectron peaks and the gain, a constant is needed. First, we need to convert the area from ADC unit to SI unit, and then divide it by $eR$. Here we list the parameter we are using in this experiment: $1ADC_{time}=4ns$, $1ADC_{voltage}=\frac{2V}{4096}=0.488mV$, $R=50\Omega$, $e = 1.602\times 10^{-19} C$. From here, you can derive the constant to be ``243695.3808``. The calculation has been done in the ``analysis.xlsx`` located in this folder.
 
+```
+#plot the photon number vs voltage
+
+#read the mean of dark peak area from txt file PMT%d_dark.txt
+mean_dark = []
+sigma_dark = []
+try:
+    f = open('PMT%d_dark.txt'%PMT_num, 'r')
+    lines = f.readlines()
+    for line in lines:
+        if 'Mean of peak area for' in line:
+            mean_dark.append(float(line.split(' ')[-1]))
+        if 'Sigma of peak area for' in line:
+            sigma_dark.append(float(line.split(' ')[-1]))
+    print(mean_dark)
+    print(sigma_dark)
+except:
+    print('No dark file')
+
+#try to open the lighton file
+mean_lighton = []
+sigma_lighton = []
+try:
+    f = open('PMT%d_lighton.txt'%PMT_num, 'r')
+    lines = f.readlines()
+    for line in lines:
+        if 'Mean of peak area' in line:
+            mean_lighton.append(float(line.split(' ')[-1]))
+        if 'Sigma of peak area' in line:
+            sigma_lighton.append(float(line.split(' ')[-1]))
+        
+    print(mean_lighton)
+    print(sigma_lighton)
+except:
+    print('No lighton file')
+
+#calculate the photon number
+if len(mean_dark) == len(mean_lighton):
+    photon_number = np.array(mean_lighton)/np.array(mean_dark)
+    print(photon_number)
+    errorbar = photon_number * np.sqrt((np.array(sigma_lighton)/np.array(mean_lighton))**2 + (np.array(sigma_dark)/np.array(mean_dark))**2)
+    plt.figure(figsize=(20, 12))
+    # plt.plot(voltage_use, photon_number, 'o', markersize=15)
+    plt.errorbar(voltage_use, photon_number, yerr=errorbar, fmt='o', markersize=15, capsize=5, elinewidth=2, markeredgewidth=2)
+    plt.ylim(0, 40)
+    plt.xlabel('Voltage', fontsize=25)
+    plt.ylabel('Photoelectron number', fontsize=25)
+    plt.title('PMT%d Photoelectron number vs Voltage'%PMT_num, fontsize=25)
+    plt.xticks(fontsize=25)
+    plt.yticks(fontsize=25)
+    #save figure
+    plt.savefig('PMT%d_Photoelectron_number.png'%PMT_num)
+else:
+    print('No lighton file or dark file')
+```
+After analyzing the dark and light-on files, we will get "PMT%d_dark.txt" and "PMT%d_lighton.txt". This cell will retrieve the mean and standard deviation and generate the "PMT%d_Photoelectron_number.png".
 
 
 
