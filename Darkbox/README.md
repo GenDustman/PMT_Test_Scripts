@@ -1,6 +1,6 @@
 # Dark Box Test
 ## Analysis_PMT_darkbox.ipynb
-``Analysis_PMT_darkbox.ipynb`` is the script to directly analyze the data named with ``PMT%d_lighton_%d.dat`` or ``PMT%d_dark_%d.dat``, which means the ``PMT%d`` in ``lighton`` or ``dark`` at ``%d`` Volts. The script generates histograms for the pulse areas in both light-on and dark conditions. It also provides information on the gain vs voltage, as well as the photon count for each voltage. To make future analysis easier, it will also generate ``PMT%d_lighton_%d_peaks_area.txt`` or ``PMT%d_dark_%d_peaks_area.txt`` which contains the areas of all peaks it has found in data, and ``PMT%d_lighton.txt`` or ``PMT%d_dark.txt`` that contains the fitting parameters for the histogram of peak area.
+``Analysis_PMT_darkbox.ipynb`` is the script to directly analyze the data named with ``PMT%d_lighton_%d.dat`` or ``PMT%d_dark_%d.dat``, which means the ``PMT%d`` in ``lighton`` or ``dark`` at ``%d`` Volts. The script generates histograms for the pulse areas in both light-on and dark conditions. It also provides information on the gain vs voltage, as well as the photon count for each voltage. To make future analysis easier, it will also generate ``PMT%d_lighton_%d_peaks_area.txt`` or ``PMT%d_dark_%d_peaks_area.txt`` which contains the areas of all peaks it has found in data, and ``PMT%d_lighton.txt`` or ``PMT%d_dark.txt`` that contains the fitting parameters for the histogram of peak area. Beyond the info for peaks and histograms, it will also save ``PMT%d_dark_gain.png`` and ``PMT%d_dark_gain_fit.txt`` for gain information that is directly derived from dark (single-photoelectron) data, and ``PMT%d_Photoelectron_number.png`` derived from fittings of dark and light-on histograms for consistency check.
 
 Here are the comments for the codes:
 
@@ -260,6 +260,36 @@ def fit_gaussian_dark(data):
 11. It fits a Gaussian function to the histogram values within the range defined by start_value and end_value using the curve_fit function from the scipy library. The bounds for the fit parameters and the maximum number of function evaluations are also specified.
 
 12. Finally, it returns the optimal parameters for the fit (popt), the estimated covariance of popt (pcov), and the start_value and end_value for the fit.
+
+```
+if light_on == 0:
+    Gain_value = 243695.3808 * np.array(mean)
+    #fit the gain with exponential function
+    def exponential(x, a, b):
+        return a* np.exp (b*np.array(x))
+
+    popt, pcov = curve_fit(exponential, voltage_use, Gain_value, maxfev=100000, bounds=([1000, 0], [np.inf, 0.01]))
+    print('popt=', popt)
+    print('pcov=', pcov)
+    plt.figure(figsize=(20, 12))
+    plt.plot(voltage_use, Gain_value, 'o', markersize=15)
+    x_fit = np.linspace(1400, 2000, 1000)
+    plt.plot(x_fit, exponential(x_fit, *popt), label='fit $y=ae^{bx}$, a = %.2f, b = %.4f'%(popt[0], popt[1]), linewidth=3)
+    plt.xlabel('Voltage', fontsize=25)
+    plt.ylabel('Gain ($10^7$)', fontsize=25)
+    plt.title('PMT%d Gain vs Voltage'%PMT_num, fontsize=25)
+    plt.legend(fontsize=25)
+    plt.xticks(fontsize=25)
+    plt.yticks(fontsize=25)
+    #save figure
+    plt.savefig('PMT%d_dark_gain.png'%PMT_num)
+    f = open('PMT%d_dark_gain_fit.txt'%PMT_num, 'w')
+    f.write('popt={}\n'.format(popt))
+    f.write('pcov={}\n'.format(pcov))
+```
+The main goal here is to calculate gain and fit gain vs voltage with the exponential function. 
+
+
 
 
 
