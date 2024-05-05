@@ -295,7 +295,7 @@ The main goal here is to calculate gain and fit gain vs voltage with the exponen
 
 ![image](https://github.com/GenDustman/PMT_Test_Scripts/assets/99235643/f02e1dc4-d4dc-4a80-952c-04c759d6fcda)
 
-To connect the mean area of single-photoelectron peaks and the gain, a constant is needed. First we need to convert the area from ADC unit to SI unit, and then divide it by $eR$. Here we list the parameter we are using in this experiment: $1ADC_{time}=4ns$, $11ADC_{voltage}=\frac{2V}{4096}=0.488mV$, $R=50\Omega$, $e = 1.6\times 10^{-19} C$
+To connect the mean area of single-photoelectron peaks and the gain, a constant is needed. First we need to convert the area from ADC unit to SI unit, and then divide it by $eR$. Here we list the parameter we are using in this experiment: $1ADC_{time}=4ns$, $11ADC_{voltage}=\frac{2V}{4096}=0.488mV$, $R=50\Omega$, $e = 1.602\times 10^{-19} C$
 
 
 
