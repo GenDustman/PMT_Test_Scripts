@@ -6,7 +6,7 @@ The purpose of the script can be divided into two parts. Firstly, it is to find 
 
 Since we fixed the voltage and the frequency we were using in the light-on test, the number of photons in each pulse should be approximately the same, and we can calculate this number by simply dividing the mean area of the light-on test by the mean area of the dark test. The gain of PMT is proportional to the mean area of the dark test, which will explained later in the document, so we can get the gain directly from multiplying a constant to the Gaussian fitting result $\mu$.
 
-Here are the comments for the codes:
+Here are the comments for codes:
 
 ```
 light_on = 0
