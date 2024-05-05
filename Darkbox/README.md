@@ -1,6 +1,6 @@
 # Dark Box Test
 ## Analysis_PMT_darkbox.ipynb
-``Analysis_PMT_darkbox.ipynb`` is the script to directly analyze the data named with ``PMT%d_lighton_%d.dat`` or ``PMT%d_dark_%d.dat``, which means the ``PMT%d`` in ``lighton`` or ``dark`` at ``%d`` Volts. The script generates histograms for the pulse areas in both light-on and dark conditions. It also provides information on the gain vs voltage, as well as the photon count for each voltage. To make future analysis easier, it will also generate ``PMT%d_lighton_%d_peaks_area.txt`` or ``PMT%d_dark_%d_peaks_area.txt`` which contains the areas of all peaks it has found in data.
+``Analysis_PMT_darkbox.ipynb`` is the script to directly analyze the data named with ``PMT%d_lighton_%d.dat`` or ``PMT%d_dark_%d.dat``, which means the ``PMT%d`` in ``lighton`` or ``dark`` at ``%d`` Volts. The script generates histograms for the pulse areas in both light-on and dark conditions. It also provides information on the gain vs voltage, as well as the photon count for each voltage. To make future analysis easier, it will also generate ``PMT%d_lighton_%d_peaks_area.txt`` or ``PMT%d_dark_%d_peaks_area.txt`` which contains the areas of all peaks it has found in data, and ``PMT%d_lighton.txt`` or ``PMT%d_dark.txt`` that contains the fitting parameters for the histogram of peak area. Beyond the info for peaks and histograms, it will also save ``PMT%d_dark_gain.png`` and ``PMT%d_dark_gain_fit.txt`` for gain information that is directly derived from dark (single-photoelectron) data, and ``PMT%d_Photoelectron_number.png`` derived from fittings of dark and light-on histograms for consistency check.
 
 Here are the comments for the codes:
 
@@ -160,6 +160,138 @@ def find_peaks_dark(data):
 8. Finally, it returns the peaks, start, end, height, width, and area of each peak.
 
 ``threshold`` in ``def find_peaks_lighton(data)`` can be chosen easily since the peaks (signal for multi-photoelectron in light-on test) are significant, however in the case of ``def find_peaks_dark(data)``, peaks for single-photoelectron are subtle and can vary a lot between different PMTs. This is why we designed the function to be "self-adaptive". Instead of using a fixed value, we use the median of a certain percentage of data. ``0.000007`` in ``def find_peaks_dark(data)`` is a crucial parameter and it is chosen based on both reasonable estimation and also experience. The dark rate is $~1000Hz$, and the width of peaks is around $5 ADC = 4\times 5 ns = 20 ns$, so the total time length of peaks is $2\times 10^{-5} s\sim 10^{-5}s$. Starting from $0.00001$, after some finetuning, we can finally get ``0.000007``, which can maximally pick all the peaks while rejecting the noises.
+
+```
+def gaussian(x, a, x0, sigma):
+    return a*np.exp(-(x-x0)**2/(2*sigma**2))
+
+def fit_gaussian_lighton(data):
+    initial = 50
+    hist, bin_edges = np.histogram(data, range=[0,range_lighton],bins=bins_lighton)
+    bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2 
+    bar = np.mean(hist[bin_centers>initial])
+    start = []
+    end = []
+    #find the highest column
+    peaks = np.where(hist == np.max(hist[bin_centers>100]))[0]
+    print('peaks=', bin_centers[peaks])
+    #find the start and end of the first peak
+    for j in range(len(peaks)):
+        start_t = peaks[j]
+        end_t = peaks[j]
+        while (hist[start_t] > 0.2*hist[peaks[j]]) & (start_t > 0):
+            start_t -= 1
+        start.append(start_t)
+        while (hist[end_t] > 0.2*hist[peaks[j]]) & (end_t < len(hist)-1):
+            end_t += 1
+        end.append(end_t)
+
+    print (bin_centers[start[0]], bin_centers[end[0]])
+    start_value = bin_centers[start[0]] - 5
+    end_value = bin_centers[end[0]] + 5
+    print(bin_centers[(bin_centers > start_value)&(bin_centers < end_value)])
+    print(hist[(bin_centers > start_value)&(bin_centers < end_value)])
+    popt, pcov = curve_fit(gaussian, bin_centers[(bin_centers > start_value)&(bin_centers < end_value)], hist[(bin_centers > start_value)&(bin_centers < end_value)], bounds=([bar, start_value, 10], [np.inf, end_value, 5000]), maxfev=500000)
+    return popt, pcov
+
+def fit_gaussian_dark(data):
+    hist, bin_edges = np.histogram(data, range=[0,range_dark], bins=bins_dark)
+    bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+
+    start = []
+    end = []
+    initial = 50
+    bar = np.mean(hist[bin_centers>initial])
+    #find ROI
+    score = hist*np.exp(-bin_centers/300)
+    # print('score=', score)
+    print('max score=', np.max(score))
+    print('ROI_center=', bin_centers[np.where(score == np.max(score))])
+    ROI_center = bin_centers[np.where(score == np.max(score))]
+    if ROI_center < 50:
+        ROI_left = 0
+    else:
+        ROI_left = ROI_center - 50
+    ROI_right = ROI_center + 50
+    #find the highest column in ROI
+    peaks = np.where(hist == np.max(hist[(bin_centers > ROI_left)&(bin_centers < ROI_right)]))[0]
+    print('peaks=', bin_centers[peaks])
+    print('hist=', hist[peaks])
+     #find the start and end of the first peak
+    for j in range(len(peaks)):
+        start_t = peaks[j]
+        end_t = peaks[j]
+        while (hist[start_t] > 0.2*hist[peaks[j]]) & (start_t > 0):
+            start_t -= 1
+        start.append(start_t)
+        while (hist[end_t] > 0.2*hist[peaks[j]]) & (end_t < len(hist)-1):
+            end_t += 1
+        end.append(end_t)
+
+    print (bin_centers[start[0]], bin_centers[end[0]])
+    start_value = bin_centers[start[0]] - 5
+    end_value = bin_centers[end[0]] + 5
+    print(bin_centers[(bin_centers > start_value)&(bin_centers < end_value)])
+    print(hist[(bin_centers > start_value)&(bin_centers < end_value)])
+    popt, pcov = curve_fit(gaussian, bin_centers[(bin_centers > start_value)&(bin_centers < end_value)], hist[(bin_centers > start_value)&(bin_centers < end_value)], bounds=([bar, start_value, 1], [np.inf, end_value, 200]), maxfev=500000)
+    return popt, pcov, start_value, end_value
+```
+``fit_gaussian_lighton`` and ``fit_gaussian_dark`` are functions to fit the first significant spike in the histogram with Gaussian. Two functions are very similar, so we will only explain ``fit_gaussian_dark``.
+1. It first creates a histogram of the data using np.histogram. The range and number of bins for the histogram are defined by range_dark and bins_dark, respectively.
+
+2. It calculates the bin centers by averaging the bin edges.
+
+3. It initializes empty lists for start and end, and sets an initial value of 50.
+
+4. It calculates a bar value, which is the mean of the histogram values where the bin centers are greater than the initial value.
+
+5. It calculates a score for each bin, which is the product of the histogram value and an exponential decay function of the bin center.
+
+6. It identifies the ROI_center as the bin center where the score is maximum.
+
+7. It defines a region of interest (ROI) around the ROI_center, extending 50 units to the left and right.
+
+8. It identifies the peaks within the ROI as the bins where the histogram value is maximum.
+
+9. It finds the start and end of each peak within the ROI. The start and end of a peak are defined as the points where the histogram value drops below 20% of the peak value.
+
+10. It defines a start_value and end_value for the Gaussian fit, which are 5 units less than the start and 5 units more than the end of the first peak, respectively.
+
+11. It fits a Gaussian function to the histogram values within the range defined by start_value and end_value using the curve_fit function from the scipy library. The bounds for the fit parameters and the maximum number of function evaluations are also specified.
+
+12. Finally, it returns the optimal parameters for the fit (popt), the estimated covariance of popt (pcov), and the start_value and end_value for the fit.
+
+```
+if light_on == 0:
+    Gain_value = 243695.3808 * np.array(mean)
+    #fit the gain with exponential function
+    def exponential(x, a, b):
+        return a* np.exp (b*np.array(x))
+
+    popt, pcov = curve_fit(exponential, voltage_use, Gain_value, maxfev=100000, bounds=([1000, 0], [np.inf, 0.01]))
+    print('popt=', popt)
+    print('pcov=', pcov)
+    plt.figure(figsize=(20, 12))
+    plt.plot(voltage_use, Gain_value, 'o', markersize=15)
+    x_fit = np.linspace(1400, 2000, 1000)
+    plt.plot(x_fit, exponential(x_fit, *popt), label='fit $y=ae^{bx}$, a = %.2f, b = %.4f'%(popt[0], popt[1]), linewidth=3)
+    plt.xlabel('Voltage', fontsize=25)
+    plt.ylabel('Gain ($10^7$)', fontsize=25)
+    plt.title('PMT%d Gain vs Voltage'%PMT_num, fontsize=25)
+    plt.legend(fontsize=25)
+    plt.xticks(fontsize=25)
+    plt.yticks(fontsize=25)
+    #save figure
+    plt.savefig('PMT%d_dark_gain.png'%PMT_num)
+    f = open('PMT%d_dark_gain_fit.txt'%PMT_num, 'w')
+    f.write('popt={}\n'.format(popt))
+    f.write('pcov={}\n'.format(pcov))
+```
+The main goal here is to calculate gain and fit gain vs voltage with the exponential function. 
+
+
+
+
 
 
 
