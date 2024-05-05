@@ -287,7 +287,9 @@ if light_on == 0:
     f.write('popt={}\n'.format(popt))
     f.write('pcov={}\n'.format(pcov))
 ```
-The main goal here is to calculate gain and fit gain vs voltage with the exponential function. One key point that requires explanation is that ``Gain_value`` is proportional to ``mean`` ($\mu$ from Gaussian fit). The reason is that the gain is proportional to the mean area of single-photoelectron peaks. $\text{Photoelectron} = \frac{\langle \text{Area}_{\text{LED}} \rangle}{\langle \text{Area}_{\text{dark}} \rangle}$, and $\text{electron} = \frac{\langle \text{Area}_{\text{LED}} \rangle}{e R}$. Therefore, $\text{Gain} = \frac{\text{\#electron}}{\# \text{Photoelectron}} = \frac{\text{Area}}{e R} \propto \langle \text{Area}_{\text{dark}} \rangle$
+The main goal here is to calculate gain and fit gain vs voltage with the exponential function. One key point that requires explanation is that ``Gain_value`` is proportional to ``mean`` ($\mu$ from Gaussian fit). The reason is that the gain is proportional to the mean area of single-photoelectron peaks. Here are the reasons:
+![image](https://github.com/GenDustman/PMT_Test_Scripts/assets/99235643/f02e1dc4-d4dc-4a80-952c-04c759d6fcda)
+
 
 
 
