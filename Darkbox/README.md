@@ -491,6 +491,7 @@ Iterates over all folders in the given directory.
 6. If fitting parameters for both dark and light on states were found, it calculates the gain, sigma_mu, and err_sigma_mu, creates a new PMT object with these values, and appends it to the list of all PMTs.
 7. After processing all folders, it sorts the list of all PMTs by the PMT number.
 8. Finally, it prints the PMT number, fitting parameters, their errors, gain, sigma_mu, and err_sigma_mu for each PMT.
+
 The mathematical expression of ``err_sigma_mu.append(np.sqrt((np.sqrt(ErrFittingParameter_dark[i][2][2])/FittingParameter_dark[i][1])**2 + (FittingParameter_dark[i][2]*np.sqrt(ErrFittingParameter_dark[i][1][1])/FittingParameter_dark[i][1]**2)**2))`` is:
 
 
