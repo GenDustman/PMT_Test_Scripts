@@ -492,7 +492,7 @@ Iterates over all folders in the given directory.
 7. After processing all folders, it sorts the list of all PMTs by the PMT number.
 8. Finally, it prints the PMT number, fitting parameters, their errors, gain, sigma_mu, and err_sigma_mu for each PMT.
 The mathematical expression of ``err_sigma_mu.append(np.sqrt((np.sqrt(ErrFittingParameter_dark[i][2][2])/FittingParameter_dark[i][1])**2 + (FittingParameter_dark[i][2]*np.sqrt(ErrFittingParameter_dark[i][1][1])/FittingParameter_dark[i][1]**2)**2))`` is:
-$\operatorname{err}_{\sigma/\mu}=\sqrt{\left(\frac{\epsilon_\sigma}{\mu}\right)^2+\left(\frac{\sigma \cdot \epsilon_\mu}{\mu^2}\right)^2}$
+$$\operatorname{err}_{\sigma/\mu}=\sqrt{\left(\frac{\epsilon_\sigma}{\mu}\right)^2+\left(\frac{\sigma \cdot \epsilon_\mu}{\mu^2}\right)^2}$$
 
 
 
