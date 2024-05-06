@@ -354,6 +354,13 @@ else:
 ```
 After analyzing the dark and light-on files, we will get "PMT%d_dark.txt" and "PMT%d_lighton.txt". This cell will retrieve the mean and standard deviation and generate the "PMT%d_Photoelectron_number.png".
 
+## Comparison_darkbox.ipynb
+The purpose of this script is straight-forward: to retrieve ``propt`` and ``pcov`` from "PMT%d_dark.txt" and "PMT%d_lighton.txt", and draw the plots of gain vs voltage and the resolution for all PMTs. However, PMT 1117 doesn't have the single-photoelectron signal at 1400V, and the error of fitting is not applicable for both 1400V and 1500V, which may cause some subtleties in plotting but nothing essential.
+
+
+
+
+
 
 
 
