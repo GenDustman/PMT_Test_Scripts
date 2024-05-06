@@ -355,7 +355,144 @@ else:
 After analyzing the dark and light-on files, we will get "PMT%d_dark.txt" and "PMT%d_lighton.txt". This cell will retrieve the mean and standard deviation and generate the "PMT%d_Photoelectron_number.png".
 
 ## Comparison_darkbox.ipynb
-The purpose of this script is straight-forward: to retrieve ``propt`` and ``pcov`` from "PMT%d_dark.txt" and "PMT%d_lighton.txt", and draw the plots of gain vs voltage and the resolution for all PMTs. However, PMT 1117 doesn't have the single-photoelectron signal at 1400V, and the error of fitting is not applicable for both 1400V and 1500V, which may cause some subtleties in plotting but nothing essential.
+The purpose of this script is simple: to retrieve ``propt`` and ``pcov`` from "PMT%d_dark.txt" and "PMT%d_lighton.txt", and draw the plots of gain vs voltage and the resolution for all PMTs. However, PMT 1117 doesn't have the single-photoelectron signal at 1400V, and the error of fitting is not applicable for both 1400V and 1500V, which may cause some subtleties in plotting but nothing essential.
+
+The plotting codes are fairly straightforward. Here we will only comment on the data-retrieving part:
+```
+#for all the folders in the FOLDER, save the folder name
+for folder in os.listdir(FOLDER):
+    if os.path.isdir(FOLDER + folder):
+        #create a new PMT object
+        if folder.startswith("1"):
+            #remove first two characters in the folder name
+            PMT_number = np.int(folder[2:])
+        FittingParameter_dark = []
+        ErrFittingParameter_dark = []
+        FittingParameter_lighton = []
+        ErrFittingParameter_lighton = []
+        flag = 0
+        #for all the files in the folder, save the file name, and read the data from the file, which is popt in PMT*_dark.txt and PMT*_lighton.txt
+        for file in os.listdir(FOLDER + folder):
+            if file.endswith("dark.txt"):
+                f = open(FOLDER + folder + '/' + file, 'r')
+                popt_pmt = []
+                pcov_pmt = []
+                lines = f.readlines()
+                for line in lines:
+                    if line.startswith("popt"):
+                        popt = []
+                        # popt=[293.801944    32.66076269   5.96203275]
+                        popt = line.split('=')[1].split('[')[1].split(']')[0].split()
+                        for i in range(len(popt)):
+                            popt[i] = float(popt[i])
+                        popt_pmt.append(popt)
+                    if line.startswith("pcov"):
+                        pcov = []
+                        pcov1 = []
+                        pcov2 = []
+                        pcov3 = []
+                        # pcov=[[ 3.62646803e+02 -1.92045881e+00 -8.91405274e+00]
+                        # [-1.92045881e+00  3.81828636e-01  9.36224298e-02]
+                        # [-8.91405274e+00  9.36224298e-02  5.09159800e-01]]
+                        pcov1 = line.split('=')[1].split('[[')[1].split(']')[0].split()
+                        pcov2 = lines[lines.index(line)+1].split('[')[1].split(']')[0].split()
+                        pcov3 = lines[lines.index(line)+2].split('[')[1].split(']')[0].split()
+                        pcov.append(pcov1)
+                        pcov.append(pcov2)
+                        pcov.append(pcov3)
+                        for i in range(len(pcov)):
+                            for j in range(len(pcov[i])):
+                                pcov[i][j] = float(pcov[i][j])
+                        pcov_pmt.append(pcov)
+                #if PMT number is 1117, remove the first element in the list
+                if PMT_number == 17:
+                    popt_pmt.pop(0)
+                    pcov_pmt.pop(0)
+                f.close()
+                FittingParameter_dark = popt_pmt
+                ErrFittingParameter_dark = pcov_pmt
+                
+            
+            if file.endswith("lighton.txt"):
+                f = open(FOLDER + folder + '/' + file, 'r')
+                popt_pmt = []
+                pcov_pmt = []
+                lines = f.readlines()
+                for line in lines:
+                    if line.startswith("popt"):
+                        popt = []
+                        #popt=[293.801944    32.66076269   5.96203275]
+                        popt = line.split('=')[1].split('[')[1].split(']')[0].split()
+                        for i in range(len(popt)):
+                            popt[i] = float(popt[i])
+                        popt_pmt.append(popt)
+            
+                    if line.startswith("pcov"):
+                        pcov = []
+                        pcov1 = []
+                        pcov2 = []
+                        pcov3 = []
+                        #pcov=[[ 3.62646803e+02 -1.92045881e+00 -8.91405274e+00]
+                        #[-1.92045881e+00  3.81828636e-01  9.36224298e-02]
+                        #[-8.91405274e+00  9.36224298e-02  5.09159800e-01]]
+                        pcov1 = line.split('=')[1].split('[[')[1].split(']')[0].split()
+                        pcov2 = lines[lines.index(line)+1].split('[')[1].split(']')[0].split()
+                        pcov3 = lines[lines.index(line)+2].split('[')[1].split(']]')[0].split()
+                        pcov.append(pcov1)
+                        pcov.append(pcov2)
+                        pcov.append(pcov3)
+                        for i in range(len(pcov)):
+                            for j in range(len(pcov[i])):
+                                pcov[i][j] = float(pcov[i][j])
+                        pcov_pmt.append(pcov)
+                #if PMT number is 1117, remove the first element in the list
+                if PMT_number == 17:
+                    popt_pmt.pop(0)
+                    pcov_pmt.pop(0)
+                f.close()
+                FittingParameter_lighton = popt_pmt
+                ErrFittingParameter_lighton = pcov_pmt
+                
+        #create a new PMT object and save the PMT_number, FittingParameter_dark and FittingParameter_lighton
+        if FittingParameter_dark and FittingParameter_lighton:
+            gain = []
+            sigma_mu = []
+            err_sigma_mu = []
+            for i in range(len(FittingParameter_dark)):
+                gain.append(FittingParameter_dark[i][1]*243695.3808)
+                sigma_mu.append(FittingParameter_dark[i][2]/FittingParameter_dark[i][1])
+                err_sigma_mu.append(np.sqrt((np.sqrt(ErrFittingParameter_dark[i][2][2])/FittingParameter_dark[i][1])**2 + (FittingParameter_dark[i][2]*np.sqrt(ErrFittingParameter_dark[i][1][1])/FittingParameter_dark[i][1]**2)**2))
+                
+            PMT_new = PMT(PMT_number, FittingParameter_dark, ErrFittingParameter_dark, FittingParameter_lighton, ErrFittingParameter_lighton, gain, sigma_mu, err_sigma_mu)
+            Data_allPMT.append(PMT_new)
+        
+                
+#order the PMT object by PMT_number
+Data_allPMT.sort(key=lambda x: x.PMT_number)
+
+#print the PMT_number, FittingParameter_dark, FittingParameter_lighton, gain, sigma_mu, err_sigma_mu
+for i in range(len(Data_allPMT)):
+    print('PMT_number:', Data_allPMT[i].PMT_number)
+    print('FittingParameter_dark:', Data_allPMT[i].FittingParameter_dark)
+    print('ErrFittingParameter_dark:', Data_allPMT[i].ErrFittingParameter_dark)
+    print('FittingParameter_lighton:', Data_allPMT[i].FittingParameter_lighton)
+    print('ErrFittingParameter_lighton:', Data_allPMT[i].ErrFittingParameter_lighton)
+    print('gain:', Data_allPMT[i].gain)
+    print('sigma_mu:', Data_allPMT[i].sigma_mu)
+    print('err_sigma_mu:', Data_allPMT[i].err_sigma_mu)
+    print('\n')
+```
+Iterates over all folders in the given directory.
+1. For each folder, it checks if the folder name starts with "1". If it does, it extracts the PMT number from the folder name.
+2. It initializes empty lists to store fitting parameters and their errors for both dark and light-on states.
+3. It then iterates over all files in the current folder.
+4. If a file ends with "dark.txt", it reads the file line by line and extracts the fitting parameters (popt) and their covariance matrix (pcov) from the lines that start with "popt" and "pcov" respectively. It does the same for files ending with "lighton.txt".
+5. If the PMT number is 17, it removes the first element from the lists of fitting parameters and their covariance matrices.
+6. If fitting parameters for both dark and light on states were found, it calculates the gain, sigma_mu, and err_sigma_mu, creates a new PMT object with these values, and appends it to the list of all PMTs.
+7. After processing all folders, it sorts the list of all PMTs by the PMT number.
+8. Finally, it prints the PMT number, fitting parameters, their errors, gain, sigma_mu, and err_sigma_mu for each PMT.
+The mathematical expression of ``err_sigma_mu.append(np.sqrt((np.sqrt(ErrFittingParameter_dark[i][2][2])/FittingParameter_dark[i][1])**2 + (FittingParameter_dark[i][2]*np.sqrt(ErrFittingParameter_dark[i][1][1])/FittingParameter_dark[i][1]**2)**2))`` is:
+$\operatorname{err}_{\sigma/\mu}=\sqrt{\left(\frac{\epsilon_\sigma}{\mu}\right)^2+\left(\frac{\sigma \cdot \epsilon_\mu}{\mu^2}\right)^2}$
 
 
 
