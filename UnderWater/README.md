@@ -1,4 +1,6 @@
 # Underwater Test
+## WaveDumpConfig_underwater.txt
+This is the config file for Wavedump in the darkbox test. We set the ``EXTERNAL_TRIGGER`` to be ``DISABLED``, which means that the digitizer only takes data when the signal passes the threshold. The meaning of other entries is in the ``WaveDump_config.docx``.
 ## Analysis_PMT_uw.ipynb
 In the underwater test, since we want to measure the dark rates of PMTs, we need to set the ADC to be self-triggered and the threshold to 20 ADC. To minimize the statistical uncertainty and cancel out the fluctuation, the DAQ time is chosen to be 10 mins, which will generate around 20 GB of data. In this case, we have to cut the data into several smaller chunks (epochs) to analyze. We also use the timestamps of the triggered events to reconstruct the time of all peaks we found, to monitor the dark rate across the DAQ period.
 
